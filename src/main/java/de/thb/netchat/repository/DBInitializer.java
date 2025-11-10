@@ -42,4 +42,20 @@ public class DBInitializer {
             e.printStackTrace();
         }
     }
+
+    public static void resetDB() {
+        try (Connection connection = DBConnection.getConnection();
+             Statement statement = connection.createStatement()) {
+
+            statement.execute("drop table if exists messages;");
+            statement.execute("drop table if exists users;");
+
+            System.out.println("Alle Tabellen gelöscht!");
+
+        } catch (SQLException e) {
+            System.err.println("Error beim Zurücksetzen der Tabellen: ");
+            e.printStackTrace();
+        }
+    }
+
 }
