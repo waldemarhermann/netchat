@@ -6,11 +6,13 @@ import java.util.List;
 
 public class UserRepo {
 
-    public void addUser(String name) {
-        String sql = "insert into users(name) values(?)";
+    public void addUser(String name, String email, String password) {
+        String sql = "insert into users(name, email, password) values(?, ?, ?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);
+            preparedStatement.setString(2, email);
+            preparedStatement.setString(3, password);
             preparedStatement.executeUpdate();
             System.out.println("Neuer Benutzer hinzugefügt");
         } catch (SQLException e) {
