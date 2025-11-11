@@ -21,7 +21,7 @@ public class UserRepo {
         }
     }
 
-    public List<String> getAllUsers() {
+    public List<String> getAllUserNames() {
         List<String> users = new ArrayList<>();
         String sql = "select name from users order by joined_at desc";
         try (Connection connection = DBConnection.getConnection();
