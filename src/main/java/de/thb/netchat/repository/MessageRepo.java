@@ -10,7 +10,7 @@ import java.util.List;
 public class MessageRepo {
 
     public void addMessage(int senderId, int receiverId, String text) {
-        String sql = "insert into messages(sender_id, recieverId, text) values(?, ?, ?)";
+        String sql = "insert into messages(sender_id, receiver_id, text) values(?, ?, ?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, senderId);
@@ -26,7 +26,7 @@ public class MessageRepo {
 
     public List<String> getMessagesByUser(int senderId) {
         List<String> messages = new ArrayList<>();
-        String sql = "select text from message where sender_id = ? order by timestamp desc";
+        String sql = "select text from messages where sender_id = ? order by timestamp desc";
         try (Connection connection = DBConnection.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, senderId);

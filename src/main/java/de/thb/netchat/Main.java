@@ -1,6 +1,7 @@
 package de.thb.netchat;
 
 import de.thb.netchat.repository.DBInitializer;
+import de.thb.netchat.service.ChatService;
 
 
 public class Main {
@@ -8,5 +9,11 @@ public class Main {
         DBInitializer.resetDB();
         DBInitializer.initialize();
         System.out.println("NetChat läuft!");
+
+        ChatService chatService = new ChatService();
+        chatService.createUser("Waldemar", "w@mail.de", "1234");
+        chatService.listUser();
+        chatService.sendMessage(1, 2, "Hallo, ist die Nachricht angekommen?");
+        chatService.showMessagesByUser(1);
     }
 }
