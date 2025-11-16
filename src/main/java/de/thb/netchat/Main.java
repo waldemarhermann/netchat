@@ -11,9 +11,6 @@ public class Main {
         DBInitializer.initialize();
         System.out.println("NetChat läuft!");
 
-        ChatServer chatServer = new ChatServer();
-        chatServer.startServer(9999);
-
         ChatService chatService = new ChatService();
         chatService.createUser("Waldemar", "w@mail.de", "1234");
         chatService.listUser();

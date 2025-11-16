@@ -16,13 +16,18 @@ public class ChatServer {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Neuer Client erfolgreich verbunden: " + clientSocket);
+                System.out.println("Neuer Client erfolgreich verbunden: " + clientSocket.toString());
 
                 new Thread(new ClientHandler(clientSocket, chatService)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        ChatServer chatServer = new ChatServer();
+        chatServer.startServer(9999);
     }
 }
 
