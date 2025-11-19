@@ -22,12 +22,10 @@ public class DBInitializer {
         String createMessages = """
                 create table if not exists messages (
                     id integer primary key autoincrement,
-                    sender_id integer not null,
-                    receiver_id integer not null,
+                    sender_name text not null,
+                    receiver_name text not null,
                     text text not null,
                     timestamp datetime default current_timestamp,
-                    foreign key (sender_id) references users(id),
-                    foreign key (receiver_id) references users(id)
                 );
                 """;
 

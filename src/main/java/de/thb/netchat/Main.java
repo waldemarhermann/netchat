@@ -14,7 +14,7 @@ public class Main {
         ChatService chatService = new ChatService();
         chatService.createUser("Waldemar", "w@mail.de", "1234");
         chatService.listUser();
-        chatService.sendMessage(1, 2, "Hallo, ist die Nachricht angekommen?");
+        chatService.sendMessage(1, "Wowa", "Hallo, ist die Nachricht angekommen?");
         chatService.showMessagesByUser(1);
     }
 }

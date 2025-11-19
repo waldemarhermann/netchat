@@ -8,6 +8,9 @@ public class ClientHandler implements Runnable {
 
     private final Socket socket;
     private final ChatService chatService;
+    private PrintWriter out;
+    private String username;
+
 
     public ClientHandler(Socket socket, ChatService chatService) {
         this.socket = socket;
@@ -18,8 +21,10 @@ public class ClientHandler implements Runnable {
     public void run() {
         try (
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true)
         ) {
+            this.out = writer;
+
             out.println("Willkommen bei NetChat!");
             out.println("Gib einen Befehl ein: ");
 
@@ -30,16 +35,23 @@ public class ClientHandler implements Runnable {
                 if (input.startsWith("REGISTER")) {
                     // REGISTER name email pass
                     String[] parts = input.split(" ");
+                    username = parts[1];
+
                     chatService.createUser(parts[1], parts[2], parts[3]);
+                    ChatServer.registerClient(this);
+
                     out.println("Benutzer registriert!");
 
                 } else if (input.startsWith("SEND")){
-                    // SEND senderId receiverId text...
                     String[] parts = input.split(" ", 4);
-                    int sender = Integer.parseInt(parts[1]);
-                    int receiver = Integer.parseInt(parts[2]);
-                    chatService.sendMessage(sender, receiver, parts[3]);
-                    out.println("Nachricht gespeichert!");
+
+                    String senderName = (parts[1]);
+                    String receiverName = parts[2];
+                    String text = parts[3];
+
+                    chatService.sendMessage(senderName, receiverName, text);
+                    ChatServer.sendToUser(receiverName, senderName + ": " + text);
+                    out.println("Nachricht gesendet!");
 
                 } else if (input.equals("LIST_USERS")) {
                     chatService.listUser();
@@ -52,6 +64,7 @@ public class ClientHandler implements Runnable {
 
                 } else if (input.equals("EXIT")) {
                     out.println("Verbindung wird beendet...");
+                    ChatServer.removeClient(this);
                     break;
 
                 } else {
@@ -62,5 +75,13 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void send(String message) {
+        out.println(message);
     }
 }

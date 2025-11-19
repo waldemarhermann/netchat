@@ -14,8 +14,8 @@ public class ChatService {
         userRepo.addUser(name, email, password);
     }
 
-    public void sendMessage(int sender_id, int receiver_id, String text) {
-        messageRepo.addMessage(sender_id, receiver_id, text);
+    public void sendMessage(String senderName, String receiverName, String text) {
+        messageRepo.addMessage(senderName, receiverName, text);
     }
 
     public void listUser() {

@@ -9,12 +9,12 @@ import java.util.List;
 
 public class MessageRepo {
 
-    public void addMessage(int senderId, int receiverId, String text) {
-        String sql = "insert into messages(sender_id, receiver_id, text) values(?, ?, ?)";
+    public void addMessage(String senderName, String receiverName, String text) {
+        String sql = "insert into messages(sender_name, receiver_name, text) values(?, ?, ?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, senderId);
-            preparedStatement.setInt(2, receiverId);
+            preparedStatement.setString(1, senderName);
+            preparedStatement.setString(2, receiverName);
             preparedStatement.setString(3, text);
             preparedStatement.executeUpdate();
             System.out.println("Nachricht gespeichert!");
