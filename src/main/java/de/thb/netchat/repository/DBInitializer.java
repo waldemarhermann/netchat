@@ -25,7 +25,7 @@ public class DBInitializer {
                     sender_name text not null,
                     receiver_name text not null,
                     text text not null,
-                    timestamp datetime default current_timestamp,
+                    timestamp datetime default current_timestamp
                 );
                 """;
 

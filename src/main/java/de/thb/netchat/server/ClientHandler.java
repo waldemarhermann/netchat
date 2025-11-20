@@ -1,5 +1,7 @@
 package de.thb.netchat.server;
 
+import com.google.gson.Gson;
+import de.thb.netchat.model.Message;
 import de.thb.netchat.service.ChatService;
 import java.io.*;
 import java.net.Socket;
@@ -8,9 +10,10 @@ public class ClientHandler implements Runnable {
 
     private final Socket socket;
     private final ChatService chatService;
+    private final Gson gson = new Gson();
+
     private PrintWriter out;
     private String username;
-
 
     public ClientHandler(Socket socket, ChatService chatService) {
         this.socket = socket;
@@ -25,63 +28,139 @@ public class ClientHandler implements Runnable {
         ) {
             this.out = writer;
 
-            out.println("Willkommen bei NetChat!");
-            out.println("Gib einen Befehl ein: ");
+            Message welcome = new Message(
+                    "info",
+                    "server",
+                    null,
+                    "Willkommen bei NetChat! Bitte sende JSON-Befehle.",
+                    String.valueOf(System.currentTimeMillis())
+            );
+            out.println(gson.toJson(welcome));
 
             String input;
 
             while ((input = in.readLine()) != null) {
 
-                if (input.startsWith("REGISTER")) {
-                    // REGISTER name email pass
-                    String[] parts = input.split(" ");
-                    username = parts[1];
+                Message message = gson.fromJson(input, Message.class);
 
-                    chatService.createUser(parts[1], parts[2], parts[3]);
-                    ChatServer.registerClient(this);
+                if (message == null || message.getType() == null) {
+                    sendError("Ungültiges JSON-Format");
+                    continue;
+                }
 
-                    out.println("Benutzer registriert!");
+                switch (message.getType()) {
 
-                } else if (input.startsWith("SEND")){
-                    String[] parts = input.split(" ", 4);
+                    //Registrierung
+                    case "register" -> handleRegister(message);
 
-                    String senderName = (parts[1]);
-                    String receiverName = parts[2];
-                    String text = parts[3];
+                    // Nachricht senden
+                    case "message" -> handleMessage(message);
 
-                    chatService.sendMessage(senderName, receiverName, text);
-                    ChatServer.sendToUser(receiverName, senderName + ": " + text);
-                    out.println("Nachricht gesendet!");
+                    // Verlauf anzeigen
+                    case "history" -> handleHistory(message);
 
-                } else if (input.equals("LIST_USERS")) {
-                    chatService.listUser();
-                    out.println("Benutzerliste wurden angegeben!");
+                    // Client beendet
+                    case "exit" -> {
+                        handleExit(message);
+                        return;
+                    }
 
-                } else if (input.startsWith("HISTORY")) {
-                    int uId = Integer.parseInt(input.split(" ")[1]);
-                    chatService.showMessagesByUser(uId);
-                    out.println("Nachrichten wurden in der Server-Konsole ausgegeben");
-
-                } else if (input.equals("EXIT")) {
-                    out.println("Verbindung wird beendet...");
-                    ChatServer.removeClient(this);
-                    break;
-
-                } else {
-                    out.println("Unbekannter Befehl.");
+                    default -> sendError("Unbekannter Nachrichtentyp: " + message.getType());
                 }
             }
-            socket.close();
+
         } catch (Exception e) {
+            System.err.println("Fehler im ClientHandler:");
             e.printStackTrace();
+        } finally {
+            ChatServer.removeClient(this);
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+
+            }
         }
     }
+
+    // Handler
+
+    private void handleRegister(Message message) {
+        username = message.getFrom(); // Name speichern
+        chatService.createUser(message.getFrom(), message.getText(), "pass");
+        ChatServer.registerClient(this);
+
+        Message response = new Message(
+                "info",
+                "server",
+                username,
+                "Registrierung erfolgreich!",
+                String.valueOf(System.currentTimeMillis())
+        );
+        out.println(gson.toJson(response));
+    }
+
+    private void handleMessage(Message message) {
+        // speichern
+        chatService.sendMessage(message.getFrom(), message.getTo(), message.getText());
+        // Weiterleiten an Empfänger
+        ChatServer.sendToUser(message.getTo(), gson.toJson(message));
+
+        // Bestätigung für Absender
+        Message confirm = new Message(
+                "info",
+                "server",
+                message.getFrom(),
+                "Nachricht gesendet",
+                String.valueOf(System.currentTimeMillis())
+        );
+        out.println(gson.toJson(confirm));
+    }
+
+    private void handleHistory(Message message) {
+        // History ausgeben
+        chatService.showMessagesByUser(message.getFrom());
+
+        Message info = new Message(
+                "info",
+                "server",
+                message.getFrom(),
+                "Historie wurde auf dem Server ausgegeben.",
+                String.valueOf(System.currentTimeMillis())
+        );
+        out.println(gson.toJson(info));
+    }
+
+    private void handleExit(Message message) {
+        ChatServer.removeClient(this);
+
+        Message exit = new Message(
+                "info",
+                "server",
+                message.getFrom(),
+                "Verbindung wird beendet.",
+                String.valueOf(System.currentTimeMillis())
+        );
+        out.println(gson.toJson(exit));
+    }
+
+    // Hilfsmethoden
 
     public String getUsername() {
         return username;
     }
 
-    public void send(String message) {
-        out.println(message);
+    public void send(String jsonMessage) {
+        out.println(jsonMessage);
+    }
+
+    private void sendError(String text) {
+        Message error = new Message(
+                "error",
+                "server",
+                username,
+                text,
+                String.valueOf(System.currentTimeMillis())
+        );
+        out.println(gson.toJson(error));
     }
 }

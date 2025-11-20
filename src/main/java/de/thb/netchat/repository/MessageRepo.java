@@ -24,12 +24,12 @@ public class MessageRepo {
         }
     }
 
-    public List<String> getMessagesByUser(int senderId) {
+    public List<String> getMessagesByUser(String senderName) {
         List<String> messages = new ArrayList<>();
-        String sql = "select text from messages where sender_id = ? order by timestamp desc";
+        String sql = "select text from messages where sender_name = ? order by timestamp desc";
         try (Connection connection = DBConnection.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, senderId);
+            preparedStatement.setString(1, senderName);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 messages.add(resultSet.getString("text"));

@@ -26,12 +26,12 @@ public class ChatService {
         }
     }
 
-    public void showMessagesByUser(int sender_id) {
-        List<String> messages = messageRepo.getMessagesByUser(sender_id);
+    public void showMessagesByUser(String senderName) {
+        List<String> messages = messageRepo.getMessagesByUser(senderName);
             if (messages.isEmpty()) {
                 System.out.println("Keine Nachrichten gefunden.");
             } else {
-                System.out.println("--- Nachrichten von Benutzer ---" + sender_id + " ---");
+                System.out.println("--- Nachrichten von Benutzer ---" + senderName + " ---");
                 for (String msg : messages) {
                     System.out.println(msg);
                 }
