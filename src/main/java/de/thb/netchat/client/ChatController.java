@@ -5,6 +5,8 @@ import de.thb.netchat.model.Message;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode; // WICHTIG: Import für die Enter-Taste
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,11 +26,11 @@ public class ChatController {
         this.connection = connection;
         this.username = username;
 
-        // Listener starten
+        // 1. Listener starten
         ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
         new Thread(listener).start();
 
-        // --- CellFactory (Design der Liste) ---
+        // 2. CellFactory (Design der Liste)
         messagesList.setCellFactory(list -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -40,15 +42,15 @@ public class ChatController {
                 }
                 setText(item);
 
-                // 1. Eigene Nachricht
+                // Eigene Nachricht
                 if (item.startsWith(username + ": ")) {
                     setStyle("-fx-alignment: CENTER-RIGHT; -fx-background-color: #D0E8FF; -fx-padding: 5px;");
                 }
-                // 2. Info / Error
+                // Info / Error
                 else if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
                     setStyle("-fx-alignment: CENTER; -fx-text-fill: #555; -fx-font-style: italic;");
                 }
-                // 3. Nachricht von anderen
+                // Nachricht von anderen
                 else if (item.contains(": ")) {
                     setStyle("-fx-alignment: CENTER-LEFT; -fx-background-color: #EFEFEF; -fx-padding: 5px;");
                 }
@@ -58,14 +60,24 @@ public class ChatController {
             }
         });
 
+        // 3. Button-Klick Aktion
         sendButton.setOnAction(e -> sendMessage());
 
+        // 4. ENTER-Taste im Textfeld (HIER IST DER NEUE CODE)
+        // -------------------------------------------------------
+        messageField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sendMessage();
+            }
+        });
+        // -------------------------------------------------------
+
+        // 5. Klick auf Userliste (Doppelklick)
         userList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 String rawUser = userList.getSelectionModel().getSelectedItem();
                 if (rawUser != null) {
-                    // WICHTIG: Hier entfernen wir das " (on)" oder " (off)",
-                    // um den reinen Namen zu bekommen
+                    // " (on)" / " (off)" entfernen für den reinen Namen
                     String cleanUser = rawUser.replace(" (on)", "").replace(" (off)", "").trim();
 
                     if (!cleanUser.equals(username)) {
@@ -94,11 +106,11 @@ public class ChatController {
             return;
         }
 
-        // 1. Nachricht an Server
+        // An Server senden
         Message msg = new Message("message", username, selectedReceiver, text);
         connection.send(msg);
 
-        // 2. Lokal anzeigen
+        // Lokal anzeigen
         messagesList.getItems().add(username + ": " + text);
         messagesList.scrollTo(messagesList.getItems().size() - 1);
 
@@ -162,7 +174,6 @@ public class ChatController {
             boolean isOnline = false;
             for (String on : onlineUsers) if (on.trim().equals(u)) isOnline = true;
 
-            // WICHTIG: Hier bauen wir den minimalistischen String "Name (on)"
             finalList.add(u + (isOnline ? " (on)" : " (off)"));
         }
 
