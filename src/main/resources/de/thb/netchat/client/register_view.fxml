@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="de.thb.netchat.client.RegisterController"
+      alignment="CENTER"
+      spacing="12">
+
+    <padding><Insets top="40"/></padding>
+
+    <Label text="NetChat – Registrierung" style="-fx-font-size: 22px;"/>
+
+    <TextField fx:id="tfUsername" promptText="Benutzername"/>
+    <TextField fx:id="tfEmail" promptText="E-Mail"/>
+    <PasswordField fx:id="tfPassword" promptText="Passwort"/>
+
+    <Button text="Registrieren"
+            style="-fx-padding: 8px 20px;"
+            onAction="#register"/>
+</VBox>

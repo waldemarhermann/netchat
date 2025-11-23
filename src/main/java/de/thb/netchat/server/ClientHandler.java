@@ -2,22 +2,38 @@ package de.thb.netchat.server;
 
 import com.google.gson.Gson;
 import de.thb.netchat.model.Message;
+import de.thb.netchat.server.command.*; // Importiert unsere neuen Commands
 import de.thb.netchat.service.ChatService;
+
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ClientHandler implements Runnable {
 
     private final Socket socket;
     private final ChatService chatService;
     private final Gson gson = new Gson();
-
     private PrintWriter out;
     private String username;
+
+    // DIE STRATEGIE-MAP
+    private final Map<String, Command> commands = new HashMap<>();
 
     public ClientHandler(Socket socket, ChatService chatService) {
         this.socket = socket;
         this.chatService = chatService;
+
+        // Hier registrieren wir die Strategien (Commands)
+        // Wenn du einen neuen Befehl hast, einfach hier eine Zeile hinzufügen!
+        commands.put("register", new RegisterCommand());
+        commands.put("login", new LoginCommand());
+        commands.put("message", new MessageCommand());
+        // history_request ist der wichtige, "history" (console) brauchen wir meist gar nicht mehr
+        commands.put("history_request", new HistoryRequestCommand());
+        commands.put("exit", new ExitCommand());
     }
 
     @Override
@@ -28,19 +44,12 @@ public class ClientHandler implements Runnable {
         ) {
             this.out = writer;
 
-            Message welcome = new Message(
-                    "info",
-                    "server",
-                    null,
-                    "Willkommen bei NetChat! Bitte sende JSON-Befehle.",
-                    String.valueOf(System.currentTimeMillis())
-            );
+            // Willkommensnachricht
+            Message welcome = new Message("info", "server", null, "Willkommen bei NetChat!");
             out.println(gson.toJson(welcome));
 
             String input;
-
             while ((input = in.readLine()) != null) {
-
                 Message message = gson.fromJson(input, Message.class);
 
                 if (message == null || message.getType() == null) {
@@ -48,119 +57,70 @@ public class ClientHandler implements Runnable {
                     continue;
                 }
 
-                switch (message.getType()) {
+                // --- STRATEGY PATTERN IN ACTION ---
+                // 1. Befehl aus der Map suchen
+                Command cmd = commands.get(message.getType());
 
-                    //Registrierung
-                    case "register" -> handleRegister(message);
-
-                    // Nachricht senden
-                    case "message" -> handleMessage(message);
-
-                    // Verlauf anzeigen
-                    case "history" -> handleHistory(message);
-
-                    // Client beendet
-                    case "exit" -> {
-                        handleExit(message);
-                        return;
-                    }
-
-                    default -> sendError("Unbekannter Nachrichtentyp: " + message.getType());
+                if (cmd != null) {
+                    // 2. Ausführen
+                    cmd.execute(message, this, chatService);
+                } else {
+                    sendError("Unbekannter Befehl: " + message.getType());
                 }
+                // ----------------------------------
             }
 
         } catch (Exception e) {
-            System.err.println("Fehler im ClientHandler:");
-            e.printStackTrace();
+            System.err.println("Verbindung zu " + (username != null ? username : "Unbekannt") + " unterbrochen.");
         } finally {
+            // Aufräumen (Egal ob Exit oder Absturz)
             ChatServer.removeClient(this);
             try {
                 socket.close();
-            } catch (IOException ignored) {
+            } catch (IOException ignored) {}
 
-            }
+            // Liste aktualisieren
+            sendUpdatedUserlistToAll();
+            System.out.println("Client aufgeräumt: " + (username != null ? username : "Unbekannt"));
         }
     }
 
-    // Handler
+    // --- Öffentliche Methoden, die von den Commands genutzt werden ---
 
-    private void handleRegister(Message message) {
-        username = message.getFrom(); // Name speichern
-        chatService.createUser(message.getFrom(), message.getText(), "pass");
-        ChatServer.registerClient(this);
-
-        Message response = new Message(
-                "info",
-                "server",
-                username,
-                "Registrierung erfolgreich!",
-                String.valueOf(System.currentTimeMillis())
-        );
-        out.println(gson.toJson(response));
+    public void send(String jsonMessage) {
+        if (out != null) out.println(jsonMessage);
     }
 
-    private void handleMessage(Message message) {
-        // speichern
-        chatService.sendMessage(message.getFrom(), message.getTo(), message.getText());
-        // Weiterleiten an Empfänger
-        ChatServer.sendToUser(message.getTo(), gson.toJson(message));
-
-        // Bestätigung für Absender
-        Message confirm = new Message(
-                "info",
-                "server",
-                message.getFrom(),
-                "Nachricht gesendet",
-                String.valueOf(System.currentTimeMillis())
-        );
-        out.println(gson.toJson(confirm));
+    public void sendMessageObject(Message msg) {
+        if (out != null) out.println(gson.toJson(msg));
     }
 
-    private void handleHistory(Message message) {
-        // History ausgeben
-        chatService.showMessagesByUser(message.getFrom());
-
-        Message info = new Message(
-                "info",
-                "server",
-                message.getFrom(),
-                "Historie wurde auf dem Server ausgegeben.",
-                String.valueOf(System.currentTimeMillis())
-        );
-        out.println(gson.toJson(info));
+    public void sendError(String text) {
+        Message error = new Message("error", "server", username, text);
+        send(gson.toJson(error));
     }
 
-    private void handleExit(Message message) {
-        ChatServer.removeClient(this);
-
-        Message exit = new Message(
-                "info",
-                "server",
-                message.getFrom(),
-                "Verbindung wird beendet.",
-                String.valueOf(System.currentTimeMillis())
-        );
-        out.println(gson.toJson(exit));
+    // Setter für den LoginCommand
+    public void setUsername(String username) {
+        this.username = username;
     }
-
-    // Hilfsmethoden
 
     public String getUsername() {
         return username;
     }
 
-    public void send(String jsonMessage) {
-        out.println(jsonMessage);
-    }
+    // Diese Methode muss jetzt public (oder package-private) sein, damit Commands sie nutzen können
+    public void sendUpdatedUserlistToAll() {
+        List<String> allUsers = chatService.listAllUsers();
+        List<String> onlineUsers = ChatServer.getOnlineUsernames();
 
-    private void sendError(String text) {
-        Message error = new Message(
-                "error",
-                "server",
-                username,
-                text,
-                String.valueOf(System.currentTimeMillis())
-        );
-        out.println(gson.toJson(error));
+        String all = String.join(",", allUsers);
+        String online = String.join(",", onlineUsers);
+
+        Message userlistMessage = new Message("userlist", "server", null, all + "||" + online);
+
+        for (ClientHandler ch : ChatServer.getConnectedClients()) {
+            ch.send(gson.toJson(userlistMessage));
+        }
     }
 }

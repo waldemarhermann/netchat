@@ -18,6 +18,20 @@ public class ChatService {
         messageRepo.addMessage(senderName, receiverName, text);
     }
 
+    public List<String> getConversation(String userA, String userB) {
+        return messageRepo.getConversation(userA, userB);
+    }
+
+    public boolean userExists(String username) {
+        return userRepo.userExists(username);
+    }
+
+    public boolean emailExists(String email) {
+        return userRepo.emailExists(email);
+    }
+
+
+
     public void listUser() {
         List<String> users = userRepo.getAllUserNames();
         System.out.println("--- Benuterübersicht ---");
@@ -25,6 +39,11 @@ public class ChatService {
             System.out.println("**" + name + "** ");
         }
     }
+
+    public List<String> listAllUsers() {
+        return userRepo.getAllUserNames();
+    }
+
 
     public void showMessagesByUser(String senderName) {
         List<String> messages = messageRepo.getMessagesByUser(senderName);
@@ -36,7 +55,11 @@ public class ChatService {
                     System.out.println(msg);
                 }
             }
-
     }
+
+    public String getPasswordForUser(String username) {
+        return userRepo.getPassword(username);
+    }
+
 
 }

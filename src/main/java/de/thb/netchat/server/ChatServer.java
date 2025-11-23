@@ -1,5 +1,7 @@
 package de.thb.netchat.server;
 
+import com.google.gson.Gson;
+import de.thb.netchat.model.Message;
 import de.thb.netchat.service.ChatService;
 
 import java.io.*;
@@ -23,13 +25,14 @@ public class ChatServer {
         connectedClients.remove(handler);
     }
 
-    public static synchronized void sendToUser(String receiverName, String message) {
+    public static synchronized void sendToUser(String receiverName, Message message) {
         for (ClientHandler client : connectedClients) {
             if (receiverName.equals(client.getUsername())) {
-                client.send(message);
+                client.sendMessageObject(message);
             }
         }
     }
+
 
     public void startServer(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -45,6 +48,32 @@ public class ChatServer {
             e.printStackTrace();
         }
     }
+
+    public static synchronized List<String> getOnlineUsernames() {
+        List<String> names = new ArrayList<>();
+        for (ClientHandler c : connectedClients) {
+            if (c.getUsername() != null) {
+                names.add(c.getUsername());
+            }
+        }
+        return names;
+    }
+
+    public static synchronized List<ClientHandler> getConnectedClients() {
+        return connectedClients;
+    }
+
+    public static boolean isUserOnline(String username) {
+        for (ClientHandler ch : connectedClients) {
+            if (ch.getUsername() != null && ch.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
 
     public static void main(String[] args) {
         ChatServer chatServer = new ChatServer();

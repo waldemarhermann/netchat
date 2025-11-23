@@ -12,7 +12,7 @@ public class DBInitializer {
         String createUsers = """
                 create table if not exists users (
                     id integer primary key autoincrement,
-                    name text not null,
+                    name text unique not null,
                     email text unique not null,
                     password text not null,
                     joined_at datetime default current_timestamp

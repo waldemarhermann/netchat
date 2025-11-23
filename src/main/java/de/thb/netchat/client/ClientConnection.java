@@ -46,40 +46,4 @@ public class ClientConnection {
         } catch (IOException ignored) {}
     }
 
-
-    public static void main(String[] args) throws Exception {
-        ClientConnection client = new ClientConnection("localhost", 9999);
-        client.connect();
-
-        // starte Listener
-        Thread listener = new Thread(new ClientListener(client.getSocket()));
-        listener.start();
-
-        // Registrierung senden
-        Message register = new Message(
-                "register",
-                "Waldemar",
-                null,
-                "wowa@mail.de",
-                null
-        );
-        client.send(register);
-
-        Thread.sleep(300);
-
-        // Nachricht senden
-        Message message = new Message(
-                "message",
-                "Waldemar",
-                "Ivan",
-                "Hey Ivan!",
-                null
-        );
-        client.send(message);
-
-        // Client offen lassen
-        System.out.println("Client läuft weiter. Drücke STRG + C zum Beenden.");
-    }
-
-
 }

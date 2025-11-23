@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="20"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="de.thb.netchat.client.StartController"
+      style="-fx-padding: 30;">
+
+    <Label text="NetChat"
+           style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+
+    <Button text="Login"
+            fx:id="loginButton"
+            style="-fx-font-size: 16px; -fx-padding: 10 20;"
+            onAction="#openLogin"/>
+
+    <Button text="Registrieren"
+            fx:id="registerButton"
+            style="-fx-font-size: 16px; -fx-padding: 10 20;"
+            onAction="#openRegister"/>
+
+</VBox>

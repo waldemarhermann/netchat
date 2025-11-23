@@ -1,5 +1,6 @@
 package de.thb.netchat.repository;
 
+import de.thb.netchat.repository.DBConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +24,44 @@ public class MessageRepo {
             e.printStackTrace();
         }
     }
+
+    public List<String> getConversation(String a, String b) {
+        List<String> list = new ArrayList<>();
+
+        String sql = """
+        select sender_name, receiver_name, text, timestamp
+        from messages
+        where (sender_name = ? and receiver_name = ?)
+           or (sender_name = ? and receiver_name = ?)
+        order by timestamp asc;
+        """;
+
+        try (Connection c = DBConnection.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, a);
+            ps.setString(2, b);
+            ps.setString(3, b);
+            ps.setString(4, a);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String sender = rs.getString("sender_name");
+                String text = rs.getString("text");
+                // KEINE Zeitberechnung mehr
+                // Format ist jetzt einfach: "Name: Nachricht"
+                String formatted = sender + ": " + text;
+                list.add(formatted);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 
     public List<String> getMessagesByUser(String senderName) {
         List<String> messages = new ArrayList<>();

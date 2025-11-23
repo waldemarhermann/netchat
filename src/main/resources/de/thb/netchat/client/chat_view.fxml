@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox spacing="15" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="de.thb.netchat.client.ChatController"
+      style="-fx-padding: 15;">
+
+    <!-- Linke Seite: Chatbereich -->
+    <VBox spacing="10" HBox.hgrow="ALWAYS">
+
+        <Label fx:id="chatTitle"
+               text="NetChat"
+               style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+        <ListView fx:id="messagesList"
+                  prefHeight="400"
+                  VBox.vgrow="ALWAYS"/>
+
+        <HBox spacing="10">
+            <TextField fx:id="messageField"
+                       promptText="Nachricht eingeben..."
+                       HBox.hgrow="ALWAYS"/>
+
+            <Button text="Senden"
+                    fx:id="sendButton"
+                    prefWidth="80"/>
+        </HBox>
+
+    </VBox>
+
+    <!-- Rechte Seite: Benutzerliste -->
+    <VBox spacing="10" prefWidth="180">
+        <Label text="Benutzer online:"
+               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+        <ListView fx:id="userList"
+                  VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+</HBox>
