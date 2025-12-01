@@ -1,11 +1,11 @@
 package de.thb.netchat.client;
 
-import com.google.gson.Gson;
 import de.thb.netchat.model.Message;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode; // WICHTIG: Import für die Enter-Taste
+import javafx.scene.input.KeyCode;
+import javafx.scene.control.ListCell;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,68 +17,81 @@ public class ChatController {
     @FXML private Button sendButton;
     @FXML private ListView<String> userList;
     @FXML private Label chatTitle;
+    @FXML private Label statusLabel;
 
     private ClientConnection connection;
     private String username;
     private String selectedReceiver = null;
 
+
     public void init(ClientConnection connection, String username) {
         this.connection = connection;
         this.username = username;
 
-        // 1. Listener starten
-        ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
-        new Thread(listener).start();
+        // Status anzeigen
+        if (statusLabel != null) {
+            statusLabel.setText("(verbunden)");
+        }
+        if (chatTitle != null) {
+            chatTitle.setText("NetChat – Chat");
+        }
 
-        // 2. CellFactory (Design der Liste)
-        messagesList.setCellFactory(list -> new ListCell<String>() {
+        // 1) Listener starten (empfängt Nachrichten im Hintergrund)
+        ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
+        Thread t = new Thread(listener, "ChatListener");
+        t.setDaemon(true);
+        t.start();
+
+        // bubble chat
+        messagesList.setCellFactory(list -> new ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
+                // alte Styles entfernen
+                getStyleClass().removeAll("message-self", "message-other", "message-system");
+
                 if (empty || item == null) {
                     setText(null);
-                    setStyle("");
                     return;
                 }
+
                 setText(item);
 
-                // Eigene Nachricht
-                if (item.startsWith(username + ": ")) {
-                    setStyle("-fx-alignment: CENTER-RIGHT; -fx-background-color: #D0E8FF; -fx-padding: 5px;");
+                // System-Meldungen
+                if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
+                    getStyleClass().add("message-system");
                 }
-                // Info / Error
-                else if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
-                    setStyle("-fx-alignment: CENTER; -fx-text-fill: #555; -fx-font-style: italic;");
+                // eigene Nachricht
+                else if (item.startsWith(username + ":") || item.startsWith("Du:")) {
+                    getStyleClass().add("message-self");
                 }
-                // Nachricht von anderen
-                else if (item.contains(": ")) {
-                    setStyle("-fx-alignment: CENTER-LEFT; -fx-background-color: #EFEFEF; -fx-padding: 5px;");
-                }
+                // fremde Nachricht
                 else {
-                    setStyle("");
+                    getStyleClass().add("message-other");
                 }
             }
         });
 
-        // 3. Button-Klick Aktion
+        // Sende-Button
         sendButton.setOnAction(e -> sendMessage());
 
-        // 4. ENTER-Taste im Textfeld (HIER IST DER NEUE CODE)
-        // -------------------------------------------------------
+        // enter = senden
         messageField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 sendMessage();
             }
         });
-        // -------------------------------------------------------
 
-        // 5. Klick auf Userliste (Doppelklick)
+        //Doppelklick auf Userliste = Empfänger wählen + History laden
         userList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 String rawUser = userList.getSelectionModel().getSelectedItem();
                 if (rawUser != null) {
-                    // " (on)" / " (off)" entfernen für den reinen Namen
-                    String cleanUser = rawUser.replace(" (on)", "").replace(" (off)", "").trim();
+                    String cleanUser = rawUser
+                            .replace(" (on)", "")
+                            .replace(" (off)", "")
+                            .trim();
 
                     if (!cleanUser.equals(username)) {
                         selectedReceiver = cleanUser;
@@ -86,7 +99,6 @@ public class ChatController {
                         messagesList.getItems().clear();
                         messagesList.getItems().add("[INFO] Lade Chatverlauf...");
 
-                        // History laden
                         Message req = new Message("history_request", username, selectedReceiver, null);
                         connection.send(req);
 
@@ -99,23 +111,27 @@ public class ChatController {
 
     private void sendMessage() {
         String text = messageField.getText();
-        if (text.isEmpty()) return;
-
-        if (selectedReceiver == null) {
-            messagesList.getItems().add("[INFO] Bitte einen Empfänger auswählen.");
+        if (text == null || text.isBlank()) {
             return;
         }
 
-        // An Server senden
+        if (selectedReceiver == null) {
+            messagesList.getItems().add("[INFO] Bitte einen Empfänger auswählen.");
+            messageField.clear();
+            return;
+        }
+
+        // Nachricht an Server senden
         Message msg = new Message("message", username, selectedReceiver, text);
         connection.send(msg);
 
-        // Lokal anzeigen
+        // Lokal anzeigen als eigene Nachricht
         messagesList.getItems().add(username + ": " + text);
         messagesList.scrollTo(messagesList.getItems().size() - 1);
 
         messageField.clear();
     }
+
 
     private void onMessageReceived(Message msg) {
         if (msg == null) return;
@@ -123,6 +139,7 @@ public class ChatController {
         Platform.runLater(() -> {
             switch (msg.getType()) {
                 case "message":
+
                     if (selectedReceiver != null && msg.getFrom().equals(selectedReceiver)) {
                         messagesList.getItems().add(msg.getFrom() + ": " + msg.getText());
                         messagesList.scrollTo(messagesList.getItems().size() - 1);
@@ -136,6 +153,7 @@ public class ChatController {
                 case "info":
                     if (!"Nachricht gesendet".equals(msg.getText())) {
                         messagesList.getItems().add("[INFO] " + msg.getText());
+                        messagesList.scrollTo(messagesList.getItems().size() - 1);
                     }
                     break;
 
@@ -155,6 +173,7 @@ public class ChatController {
 
                 case "error":
                     messagesList.getItems().add("[ERROR] " + msg.getText());
+                    messagesList.scrollTo(messagesList.getItems().size() - 1);
                     break;
             }
         });
@@ -162,6 +181,7 @@ public class ChatController {
 
     private void updateUserList(String payload) {
         if (payload == null) return;
+
         String[] parts = payload.split("\\|\\|");
         String[] allUsers = parts.length > 0 ? parts[0].split(",") : new String[0];
         String[] onlineUsers = parts.length > 1 ? parts[1].split(",") : new String[0];
@@ -172,7 +192,12 @@ public class ChatController {
             if (u.isEmpty() || u.equals(username)) continue;
 
             boolean isOnline = false;
-            for (String on : onlineUsers) if (on.trim().equals(u)) isOnline = true;
+            for (String on : onlineUsers) {
+                if (on.trim().equals(u)) {
+                    isOnline = true;
+                    break;
+                }
+            }
 
             finalList.add(u + (isOnline ? " (on)" : " (off)"));
         }

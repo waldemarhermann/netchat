@@ -25,6 +25,12 @@ public class LoginController {
     private final Gson gson = new Gson();
 
     @FXML
+    private void onLoginClick() {
+        // delegiert einfach auf die bestehende Methode
+        login();
+    }
+
+    @FXML
     public void login() {
 
         String username = tfUsername.getText();
@@ -49,21 +55,21 @@ public class LoginController {
 
             connection.send(loginMsg);
 
-            // Warten auf Antwort (BLOCKIERT NICHT die UI – extra Thread!)
+            // Antwort vom Server lesen
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(connection.getSocket().getInputStream())
             );
 
             String response = in.readLine();
-            Message rsp = new Gson().fromJson(response, Message.class);
+            Message rsp = gson.fromJson(response, Message.class);
 
-            if (rsp.getType().equals("error")) {
+            if ("error".equals(rsp.getType())) {
                 showError(rsp.getText());
                 connection.close();
                 return;
             }
 
-            // Login OK → speichern & Chat öffnen
+            // wenn login passt speichern u chat öffnen
             ClientManager.getInstance().setUsername(username);
             ClientManager.getInstance().setConnection(connection);
 
@@ -74,7 +80,6 @@ public class LoginController {
         }
     }
 
-
     private void openChatWindow(ClientConnection connection, String username) {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -82,6 +87,11 @@ public class LoginController {
             );
 
             Scene chatScene = new Scene(loader.load());
+
+            chatScene.getStylesheets().add(
+                    getClass().getResource("/de/thb/netchat/client/app.css").toExternalForm()
+            );
+
 
             ChatController controller = loader.getController();
             controller.init(connection, username);
@@ -103,3 +113,4 @@ public class LoginController {
         a.showAndWait();
     }
 }
+

@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox spacing="15" xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="de.thb.netchat.client.ChatController"
-      style="-fx-padding: 15;">
+<BorderPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.thb.netchat.client.ChatController"
+            prefWidth="720" prefHeight="480">
 
-    <!-- Linke Seite: Chatbereich -->
-    <VBox spacing="10" HBox.hgrow="ALWAYS">
+    <!-- Titel + Status -->
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10;">
+            <!-- mit Controller-Feld verknüpft -->
+            <Label fx:id="chatTitle"
+                   text="NetChat – Chat"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 
-        <Label fx:id="chatTitle"
-               text="NetChat"
-               style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-
-        <ListView fx:id="messagesList"
-                  prefHeight="400"
-                  VBox.vgrow="ALWAYS"/>
-
-        <HBox spacing="10">
-            <TextField fx:id="messageField"
-                       promptText="Nachricht eingeben..."
-                       HBox.hgrow="ALWAYS"/>
-
-            <Button text="Senden"
-                    fx:id="sendButton"
-                    prefWidth="80"/>
+            <Label fx:id="statusLabel"
+                   text="(verbunden)"/>
         </HBox>
+    </top>
 
-    </VBox>
+    <!--Nachrichten -->
+    <center>
+        <!-- Name passt zu ChatController: messagesList -->
+        <ListView fx:id="messagesList"/>
+    </center>
 
-    <!-- Rechte Seite: Benutzerliste -->
-    <VBox spacing="10" prefWidth="180">
-        <Label text="Benutzer online:"
-               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <!--Benutzerliste -->
+    <right>
+        <VBox spacing="6" styleClass="sidebar" style="-fx-padding: 10;">
+            <Label text="Benutzer" styleClass="header"/>
+            <ListView fx:id="userList" prefWidth="160"/>
+        </VBox>
+    </right>
 
-        <ListView fx:id="userList"
-                  VBox.vgrow="ALWAYS"/>
-    </VBox>
+    <!--Eingabe + Senden -->
+    <bottom>
+        <HBox spacing="8" style="-fx-padding: 10;">
+            <TextField fx:id="messageField" promptText="Nachricht eingeben…"/>
+            <Button fx:id="sendButton" text="Senden"/>
+        </HBox>
+    </bottom>
 
-</HBox>
+</BorderPane>

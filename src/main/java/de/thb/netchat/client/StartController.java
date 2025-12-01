@@ -31,6 +31,11 @@ public class StartController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Scene scene = new Scene(loader.load());
 
+            scene.getStylesheets().add(
+                    getClass().getResource("/de/thb/netchat/client/app.css").toExternalForm()
+            );
+
+
             // Bühne holen über den Button
             Stage stage = FXUtil.getStageFromNode(loginButton);
 

@@ -1,0 +1,77 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-base: #f4f6f8;
+    -fx-background-color: #f4f6f8;
+}
+
+.label {
+    -fx-text-fill: #2e2e2e;
+}
+
+#statusLabel {
+    -fx-text-fill: #2e7d32;
+    -fx-font-size: 11px;
+}
+
+.button {
+    -fx-background-radius: 6;
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #d9d9d9);
+    -fx-text-fill: #222;
+    -fx-font-weight: 500;
+}
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #e6e6e6, #cccccc);
+}
+
+.text-field, .text-area {
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #ccc;
+    -fx-background-color: #fff;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 6;
+    -fx-padding: 4;
+}
+
+/* Chat messages */
+.list-cell {
+    -fx-padding: 6 10;
+    -fx-background-color: transparent;
+    -fx-wrap-text: true;
+}
+
+.list-cell:filled:selected, .list-cell:filled:hover {
+    -fx-background-color: transparent;
+}
+
+.message-self {
+    -fx-background-color: #d1e7dd;
+    -fx-background-radius: 10;
+    -fx-padding: 8;
+}
+
+.message-other {
+    -fx-background-color: #e7f0ff;
+    -fx-background-radius: 10;
+    -fx-padding: 8;
+}
+
+.message-system {
+    -fx-text-fill: #666;
+    -fx-font-style: italic;
+}
+
+.sidebar {
+    -fx-background-color: #fafafa;
+    -fx-border-color: #ddd;
+    -fx-border-width: 0 0 0 1;
+}
+
+.header {
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 8 0;
+}
