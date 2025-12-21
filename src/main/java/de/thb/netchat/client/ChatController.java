@@ -10,50 +10,85 @@ import javafx.scene.input.KeyCode; // WICHTIG: Import für die Enter-Taste
 import java.util.ArrayList;
 import java.util.List;
 
+// Controller für das Chat-Fenster. Manager der grafischen Oberfläche (GUI).
+// Er läuft was ausschließlich im "JavaFX Application Thread", außer dort wo der ClientListener eingreift.
 public class ChatController {
 
+    // FXML Referenzen
+    // Diese Variablen sind direkt mit den sichtbaren Elementen auf dem Bildschirm verknüpft.
+    // ListView ist keine einfache Liste, sondern ein komplexes GUI-Bauteil.
+    // Jede Änderung hier (wie z.B. getItems().add...) führt sofort zu Grafik-Berechnungen.
     @FXML private ListView<String> messagesList;
     @FXML private TextField messageField;
     @FXML private Button sendButton;
     @FXML private ListView<String> userList;
     @FXML private Label chatTitle;
 
+    // Verbindung zum Server.
     private ClientConnection connection;
+
+    // Benutzername
     private String username;
+
+    // Chatpartner, wird gesetzt sobald man den User aus der Userliste clickt.
     private String selectedReceiver = null;
 
+    // Initialisierungsmethode: Wird vom LoginController manuell aufgerufen, um die Verbindung zu übergeben.
     public void init(ClientConnection connection, String username) {
         this.connection = connection;
         this.username = username;
 
-        // 1. Listener starten
+        // Listener starten. Es wird das Socket und this::onMessageReceived übergeben. Das ist der Callback (Consumer).
+        // Wenn der Listener Daten hat, für diese Methode aus.
         ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
+
+        // Neuer Thread wird gestartet. Muss unbedingt parallel passieren, damit die GUI nicht einfriert, während der
+        // Listener auf Nachrichten wartet (blockierendes Lesen).
         new Thread(listener).start();
 
-        // 2. CellFactory (Design der Liste)
+        // Aussehen der ListView wird definiert (CellFactory).
+        // ListView erhält Anweisung, wie sie Daten malen soll (Farben, Ausrichtung).
+        // Der ListView wird kein fester Inhalt übergeben, sondern eine Art Bauplan, Factory.
+        // Der Lambda-Ausdruch (list -> ...) nimmt die ListView entgegen und gibt eine neue Zelle zurück.
+        // JavaFX nutzt diesen Bauplan, um nur so viele Zellen zu erzeugen wie auf den Bildschirm passen.
+
         messagesList.setCellFactory(list -> new ListCell<String>() {
+
+
+            /**
+             * Methode wird von JavaFX automatisch aufgerufen. Dies passiert ständig: Beim Start, bei neuen Nachrichten, beim Scrollen.
+             * @param item Der Text der Nachricht (z.B. "Waldemar: Hallo"), kommt aus der internen Datenliste
+             * @param empty true, wenn die Zeile gerade keine Daten hat (z.B. ganz unten im leeren Bereich).
+             */
             @Override
             protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
+                // Aufruf der Basis-Implementierung.
+                // Dies ist zwingend erforderlich, um die korrekte interne Zustandsverwaltung durch das FW sicherzustellen.
+                super.updateItem(item, empty); // --> Standard-Verhalten beibehalten.
+
+                // Wenn Zeile Leer ist (keine Nachricht), nichts anzeigen.
                 if (empty || item == null) {
                     setText(null);
                     setStyle("");
                     return;
                 }
+                // Text setzen.
                 setText(item);
 
-                // Eigene Nachricht
+                // CSS-Styling je nach Art der Nachricht.
+                // Eigene Nachrichten: Rechtsbündig, blau
                 if (item.startsWith(username + ": ")) {
                     setStyle("-fx-alignment: CENTER-RIGHT; -fx-background-color: #D0E8FF; -fx-padding: 5px;");
                 }
-                // Info / Error
+                // Info / Error: Mittig, Grau, kursiv
                 else if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
                     setStyle("-fx-alignment: CENTER; -fx-text-fill: #555; -fx-font-style: italic;");
                 }
-                // Nachricht von anderen
+                // Nachricht von anderen: Linksbündig, hellgrau
                 else if (item.contains(": ")) {
                     setStyle("-fx-alignment: CENTER-LEFT; -fx-background-color: #EFEFEF; -fx-padding: 5px;");
                 }
+                // Fallback (Normal)
                 else {
                     setStyle("");
                 }
@@ -118,6 +153,7 @@ public class ChatController {
     }
 
     private void onMessageReceived(Message msg) {
+        // Sicherheitscheck: Leere Nachrichten werden ignoriert.
         if (msg == null) return;
 
         Platform.runLater(() -> {
