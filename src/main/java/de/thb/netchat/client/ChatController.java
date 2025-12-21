@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Controller für das Chat-Fenster. Manager der grafischen Oberfläche (GUI).
-// Er läuft was ausschließlich im "JavaFX Application Thread", außer dort wo der ClientListener eingreift.
+// Er läuft ausschließlich im JavaFX Application Thread, außer dort wo der ClientListener eingreift.
 public class ChatController {
 
     // FXML Referenzen
@@ -95,36 +95,54 @@ public class ChatController {
             }
         });
 
-        // 3. Button-Klick Aktion
-        sendButton.setOnAction(e -> sendMessage());
+        /**
+         * Event-Handler: Senden per Button.
+         * Registrierung eines Listeners für das ActionEvent des Buttons.
+         * Lambda-Ausdruck leitet die Ausführung direkt an die sendMessage()-Methode weiter.
+         */
+        sendButton.setOnAction(event -> sendMessage());
 
-        // 4. ENTER-Taste im Textfeld (HIER IST DER NEUE CODE)
-        // -------------------------------------------------------
+        // Event-Handler: Sender per Enter-Taste
         messageField.setOnKeyPressed(event -> {
+            // Nur beim Drücken der Enter-Taste wird die Aktion ausgeführt.
             if (event.getCode() == KeyCode.ENTER) {
                 sendMessage();
             }
         });
-        // -------------------------------------------------------
 
-        // 5. Klick auf Userliste (Doppelklick)
+        // Interaktion Userliste
+        // Handler für Maus-Ereignisse innerhalb der ListView.
         userList.setOnMouseClicked(event -> {
+
+            // 1 Click: Selektion, 2 Click: Interaktion.
             if (event.getClickCount() == 2) {
+
+                // Datenabruf über das SelectionModel. Zugriff auf das ausgewählte Item der Liste (z.B. "Waldemar (on)").
                 String rawUser = userList.getSelectionModel().getSelectedItem();
+
+                // Null-Safety Check
+                // Verhindert Exceptions, falls in leeren Bereich der Liste geclickt wird.
                 if (rawUser != null) {
-                    // " (on)" / " (off)" entfernen für den reinen Namen
+
+                    // Daten-Normalisierung. Statusanzeige (on/off) wird entfernt, um den Username für die Backend-Logik zu extrahieren.
+                    // .trim() entfernt potenitelle Whitespaces.
                     String cleanUser = rawUser.replace(" (on)", "").replace(" (off)", "").trim();
 
+                    // Validierung, Plausibilitätsprüfung: Ein Chat mit eigenem User ist nicht zulässig.
                     if (!cleanUser.equals(username)) {
+                        // Setzen des aktuellen Chatpartners.
                         selectedReceiver = cleanUser;
+                        // Fenstertitel wird aktualisiert.
                         chatTitle.setText("Chat mit " + selectedReceiver);
+                        // View-Reset: Lokale Nachrichtenliste wird bereinigt.
                         messagesList.getItems().clear();
-                        messagesList.getItems().add("[INFO] Lade Chatverlauf...");
+                        /* messagesList.getItems().add("[INFO] Lade Chatverlauf..."); */
 
-                        // History laden
+                        // Erstellung und Versand eines history_request-Objekts an den Sever.
+                        // Die Antwort erfolgt asynchron und wird später im CLientListener (onMeesageReceived) bearbeitet.
                         Message req = new Message("history_request", username, selectedReceiver, null);
                         connection.send(req);
-
+                        // Setzt den Fokus in das Textfeld.
                         messageField.requestFocus();
                     }
                 }
