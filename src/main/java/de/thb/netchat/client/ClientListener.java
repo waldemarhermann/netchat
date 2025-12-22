@@ -27,10 +27,10 @@ public class ClientListener implements Runnable {
             String line;
             while ((line = in.readLine()) != null) {
 
-                Message msg = gson.fromJson(line, Message.class);
+                Message message = gson.fromJson(line, Message.class);
 
-                if (msg != null) {
-                    callback.accept(msg);   // GUI oder Konsole informieren
+                if (message != null) {
+                    callback.accept(message);   // GUI oder Konsole informieren
                 }
             }
 

@@ -46,12 +46,13 @@ public class ChatController {
         // Listener auf Nachrichten wartet (blockierendes Lesen).
         new Thread(listener).start();
 
-        // Aussehen der ListView wird definiert (CellFactory).
-        // ListView erhält Anweisung, wie sie Daten malen soll (Farben, Ausrichtung).
-        // Der ListView wird kein fester Inhalt übergeben, sondern eine Art Bauplan, Factory.
-        // Der Lambda-Ausdruch (list -> ...) nimmt die ListView entgegen und gibt eine neue Zelle zurück.
-        // JavaFX nutzt diesen Bauplan, um nur so viele Zellen zu erzeugen wie auf den Bildschirm passen.
-
+        /**
+         * Aussehen der ListView wird definiert (CellFactory).
+         * ListView erhält Anweisung, wie sie Daten malen soll (Farben, Ausrichtung).
+         * Der ListView wird kein fester Inhalt übergeben, sondern eine Art Bauplan, Factory.
+         * Der Lambda-Ausdruch (list -> ...) nimmt die ListView entgegen und gibt eine neue Zelle zurück.
+         * JavaFX nutzt diesen Bauplan, um nur so viele Zellen zu erzeugen wie auf den Bildschirm passen.
+         */
         messagesList.setCellFactory(list -> new ListCell<String>() {
 
 
@@ -150,87 +151,145 @@ public class ChatController {
         });
     }
 
+    /**
+     * Verarbeitet das Senden einer Nachricht.
+     */
     private void sendMessage() {
+        // Eingabe wird validiert. Text aus dem Eingabefeld (TextField) wird geholt.
         String text = messageField.getText();
+        // Wenn nichts eingetippt wurde, dann Abbruch.
         if (text.isEmpty()) return;
-
+        // Validierung: Es muss zwingend ein ChatPartner ausgewählt sein.
         if (selectedReceiver == null) {
             messagesList.getItems().add("[INFO] Bitte einen Empfänger auswählen.");
             return;
         }
 
-        // An Server senden
+        // Erstellen des Datenobjekts und Versand an den Server.
+        // Der Server kümmert sich um die Speicherung in der Datenbank (MessageRepo).
         Message msg = new Message("message", username, selectedReceiver, text);
         connection.send(msg);
 
-        // Lokal anzeigen
+        // Hier wird nicht auf die Datenbank-Bestätigung gewartet, sondern die Nachricht wird sofort
+        // lokal angezeigt. Das wirkt für den User schneller.
         messagesList.getItems().add(username + ": " + text);
+        // Automatisches Scrollen ans Ende der Liste, damit die neue Nachricht sichtbar ist.
         messagesList.scrollTo(messagesList.getItems().size() - 1);
-
+        // Eingabefeld wird geleert
         messageField.clear();
     }
 
-    private void onMessageReceived(Message msg) {
-        // Sicherheitscheck: Leere Nachrichten werden ignoriert.
-        if (msg == null) return;
 
+    /**
+     * Callback-Methode (Asynchrone Verarbeitung)
+     * Wird vom ClientListener (Hintergrund-Thread) aufgerufen, sobald Daten vom Server eintreffen.
+     *
+     * @param message Das empfangene Datenpaket (bereits von JSON zu Java konvertiert).
+     */
+    private void onMessageReceived(Message message) {
+        // Sicherheitscheck: Leere Nachrichten werden ignoriert.
+        if (message == null) return;
+
+        /**
+         * Thread-Wechsel (Context Switch)
+         * Hier im Hintergrund-Thread des Listeners. Direkte Änderung an der GUI (messagesList) würde zur Exception führen.
+         * Platform.runLater reiht den Code in die Warteschlange des JavaFx-UI-Threads ein.
+         */
         Platform.runLater(() -> {
-            switch (msg.getType()) {
+            // Dispatching: Abhängig vom Nachrichtentyp wird entsprechend reagiert.
+            switch (message.getType()) {
+                // Fall: Reguläre Chat-Nachricht kommt rein.
                 case "message":
-                    if (selectedReceiver != null && msg.getFrom().equals(selectedReceiver)) {
-                        messagesList.getItems().add(msg.getFrom() + ": " + msg.getText());
+                    // Filterlogik: Nachricht wird nur angezeigt, wenn sie vom aktuell ausgewählten Chatpartner kommt.
+                    if (selectedReceiver != null && message.getFrom().equals(selectedReceiver)) {
+                        messagesList.getItems().add(message.getFrom() + ": " + message.getText());
+                        // Auto-Scroll zur neuesten Nachricht.
                         messagesList.scrollTo(messagesList.getItems().size() - 1);
                     }
                     break;
 
+                // Fall: Der Server meldet eine Änderung der verbundenen User (Login/Logout).
+                // Seitenleiste wird aktualisiert.
                 case "userlist":
-                    updateUserList(msg.getText());
+                    updateUserList(message.getText());
                     break;
 
+                // Fall: Systemnachrichten.
                 case "info":
-                    if (!"Nachricht gesendet".equals(msg.getText())) {
-                        messagesList.getItems().add("[INFO] " + msg.getText());
+                    // Filter: Nachricht gesendet Nachrichten werden ausgelassen.
+                    if (!"Nachricht gesendet".equals(message.getText())) {
+                        messagesList.getItems().add("[INFO] " + message.getText());
                     }
                     break;
 
+                // Fall: Die Antwort auf den history-request (Datenbank-Auszug) wird hier angenommen.
                 case "history_response":
+                    // Ansicht wird bereinigt.
                     messagesList.getItems().clear();
-                    String data = msg.getText();
+                    String data = message.getText();
                     if (data != null && !data.isEmpty()) {
-                        String[] msgs = data.split("\\|\\|");
-                        for (String m : msgs) {
-                            messagesList.getItems().add(m);
+                        // Deserialisierung: Der Server schickt alle Nachrichten als einen String, getrennt durch ||.
+                        // Das wird dann aufgesplittet und für jede Zeile hinzugefügt.
+                        String[] messages = data.split("\\|\\|"); // --> Ein Array ["Max: Hi", "Ich: Hallo"]
+                        for (String msg : messages) {
+                            messagesList.getItems().add(msg); // Jeder Schnipsel wird einzeln in die GUI-Liste geworfen.
                         }
+                    // Leere History -> Neuer Chat.
                     } else {
                         messagesList.getItems().add("[INFO] Chat gestartet.");
                     }
+                    // Nach dem Laden ganz nach unten scrollen.
                     messagesList.scrollTo(messagesList.getItems().size() - 1);
                     break;
-
+                // Fall: Server meldet Fehler, z.B. User nicht gefunden.
                 case "error":
-                    messagesList.getItems().add("[ERROR] " + msg.getText());
+                    messagesList.getItems().add("[ERROR] " + message.getText());
                     break;
             }
         });
     }
 
+    /**
+     * Verarbeitet die Benutzerliste vom Server und aktualisiert die Anzeige.
+     * Erwartetes Format: "UserA,UserB,UserC||UserA,UserC" (Alle User || Online User).
+     *
+     * @param payload Der Roh-String vom Server (Protokoll-Format).
+     */
     private void updateUserList(String payload) {
+        // Validierung.
         if (payload == null) return;
+        // Payload-Parsing & Deserialisierung. Zerlegung des Strings anhand des
+        // Protokoll-Trenners ||.
+        // Index 0: Liste aller registrierten Nutzer.
+        // Index 1: Liste der aktuell verbundenen Nutzer.
         String[] parts = payload.split("\\|\\|");
         String[] allUsers = parts.length > 0 ? parts[0].split(",") : new String[0];
         String[] onlineUsers = parts.length > 1 ? parts[1].split(",") : new String[0];
 
+        // Temporäre Liste für den Aufbau des neuen UI-Status.
         List<String> finalList = new ArrayList<>();
-        for (String u : allUsers) {
-            u = u.trim();
-            if (u.isEmpty() || u.equals(username)) continue;
 
+        // Daten-Aggregation & Filterung.
+        for (String user : allUsers) {
+            // Normalisierung: Entfernen von Whitespaces.
+            user = user.trim();
+
+            // Filterlogik: Leere Einträge ignorieren. Eigenen Benutzer aus der Liste ausschließen.
+            if (user.isEmpty() || user.equals(username)) continue;
+
+            // Status-Abgleich. Prüfung, ob der aktuelle User in der Online-Liste enthalten ist.
             boolean isOnline = false;
-            for (String on : onlineUsers) if (on.trim().equals(u)) isOnline = true;
+            for (String onlineUser : onlineUsers) {
+                if (onlineUser.trim().equals(user)) {
+                    isOnline = true;
+                    break; // Innere Schleife frühzeitig verlassen.
+                }
+            }
 
-            finalList.add(u + (isOnline ? " (on)" : " (off)"));
+            finalList.add(user + (isOnline ? " (on)" : " (off)"));
         }
 
+        // Liste wird nur aktualisiert, wenn sich der Inhalt tatsächlich geändert hat.
         if (!userList.getItems().equals(finalList)) {
             userList.getItems().setAll(finalList);
         }

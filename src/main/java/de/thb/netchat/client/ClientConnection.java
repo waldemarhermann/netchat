@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-// Netzwerk-Schnittstelle des Clients. Kapselt Java-Socket-Logik, übernimmt Verantwortung für PrintWriter, OutputStream, flush.
-// Aufgaben: 1. Verbindung zum Server physikalisch herstellen (TCP-Handshake: SYN, SYN+ACK, ACK)
-// 2. Java-Objekte (Message) in JSON umwandeln. 3. Diesen JSON an den Server schicken.
+/**
+ * Netzwerk-Schnittstelle des Clients. Kapselt Java-Socket-Logik, übernimmt Verantwortung für PrintWriter, OutputStream, flush.
+ * Aufgaben: 1. Verbindung zum Server physikalisch herstellen (TCP-Handshake: SYN, SYN+ACK, ACK)
+ * 2. Java-Objekte (Message) in JSON umwandeln. 3. Diesen JSON an den Server schicken.
+ */
 public class ClientConnection {
 
     private final String host;
