@@ -72,7 +72,7 @@ public class LoginController {
             String response = in.readLine();
             Message rsp = new Gson().fromJson(response, Message.class);
 
-            // Antwort wid geprüft.
+            // Antwort wird geprüft.
             if (rsp.getType().equals("error")) {
                 showError(rsp.getText());
                 connection.close();

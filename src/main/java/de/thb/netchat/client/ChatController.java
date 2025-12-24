@@ -39,7 +39,7 @@ public class ChatController {
         this.username = username;
 
         // Listener starten. Es wird das Socket und this::onMessageReceived übergeben. Das ist der Callback (Consumer).
-        // Wenn der Listener Daten hat, für diese Methode aus.
+        // Wenn der Listener Daten hat, führt diese Methode aus.
         ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
 
         // Neuer Thread wird gestartet. Muss unbedingt parallel passieren, damit die GUI nicht einfriert, während der
@@ -54,7 +54,6 @@ public class ChatController {
          * JavaFX nutzt diesen Bauplan, um nur so viele Zellen zu erzeugen wie auf den Bildschirm passen.
          */
         messagesList.setCellFactory(list -> new ListCell<String>() {
-
 
             /**
              * Methode wird von JavaFX automatisch aufgerufen. Dies passiert ständig: Beim Start, bei neuen Nachrichten, beim Scrollen.
