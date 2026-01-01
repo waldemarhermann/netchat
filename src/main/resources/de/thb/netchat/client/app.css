@@ -75,3 +75,60 @@
     -fx-font-weight: bold;
     -fx-padding: 6 0 8 0;
 }
+
+/* Start Screen  */
+
+.start-root {
+    -fx-background-color: #f4f6f8;
+}
+
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #e2e6ea;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 14, 0.1, 0, 4);
+}
+
+.app-title {
+    -fx-font-size: 30px;
+    -fx-font-weight: 800;
+}
+
+.app-subtitle {
+    -fx-text-fill: #666;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 6 0;
+}
+
+.primary-button {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-padding: 10 16;
+}
+.primary-button:hover {
+    -fx-background-color: #256428;
+}
+
+.secondary-button {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-background-color: #eef2f5;
+    -fx-text-fill: #222;
+    -fx-font-weight: 600;
+    -fx-padding: 10 16;
+    -fx-border-color: #d6dde3;
+}
+.secondary-button:hover {
+    -fx-background-color: #e3e9ee;
+}
+
+.footer-hint {
+    -fx-text-fill: #9aa3ab;
+    -fx-font-size: 10px;
+    -fx-padding: 6 0 0 0;
+}
+
