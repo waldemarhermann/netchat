@@ -50,7 +50,9 @@ public class LoginController {
             /* Verbindung herstellen: Hier wird ClientConnection erstellt. ABER: Noch nicht die
             dauerhafte Verbindung, falls Login fehlschlägt. */
             ClientConnection connection = new ClientConnection("localhost", 9999);
-            connection.connect(); // Baut den Socket auf (TCP Handshake)
+
+            // Baut den Socket auf (TCP Handshake)
+            connection.connect();
 
             /* Login-Nachricht wird vorbereitet
             Typ "login" sagt dem Server, dass er diese Daten prüfen soll. */
