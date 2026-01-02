@@ -172,8 +172,8 @@ public class ClientHandler implements Runnable {
         Message userlistMessage = new Message("userlist", "server", null, all + "||" + online);
 
         // Iteriert über alle aktiven Verbindungen und sendet das Update.
-        for (ClientHandler ch : ChatServer.getConnectedClients()) {
-            ch.send(gson.toJson(userlistMessage));
+        for (ClientHandler clientHandler : ChatServer.getConnectedClients()) {
+            clientHandler.send(gson.toJson(userlistMessage));
         }
     }
 }
