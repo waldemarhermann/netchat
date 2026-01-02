@@ -10,14 +10,16 @@ import javafx.scene.input.KeyCode; // WICHTIG: Import für die Enter-Taste
 import java.util.ArrayList;
 import java.util.List;
 
-// Controller für das Chat-Fenster. Manager der grafischen Oberfläche (GUI).
-// Er läuft ausschließlich im JavaFX Application Thread, außer dort wo der ClientListener eingreift.
+/**
+ * Controller für das Chat-Fenster. Manager der grafischen Oberfläche (GUI).
+ * Er läuft ausschließlich im JavaFX Application Thread, außer dort wo der ClientListener eingreift.
+ */
 public class ChatController {
 
-    // FXML Referenzen
-    // Diese Variablen sind direkt mit den sichtbaren Elementen auf dem Bildschirm verknüpft.
-    // ListView ist keine einfache Liste, sondern ein komplexes GUI-Bauteil.
-    // Jede Änderung hier (wie z.B. getItems().add...) führt sofort zu Grafik-Berechnungen.
+    /* FXML Referenzen
+       Diese Variablen sind direkt mit den sichtbaren Elementen auf dem Bildschirm verknüpft.
+       ListView ist keine einfache Liste, sondern ein komplexes GUI-Bauteil.
+       Jede Änderung hier (wie z.B. getItems().add...) führt sofort zu Grafik-Berechnungen. */
     @FXML private ListView<String> messagesList;
     @FXML private TextField messageField;
     @FXML private Button sendButton;
@@ -33,7 +35,12 @@ public class ChatController {
     // Chatpartner, wird gesetzt sobald man den User aus der Userliste clickt.
     private String selectedReceiver = null;
 
-    // Initialisierungsmethode: Wird vom LoginController manuell aufgerufen, um die Verbindung zu übergeben.
+    /**
+     * Initialisierungsmethode: Wird vom LoginController manuell aufgerufen, um die Verbindung zu übergeben.
+     *
+     * @param connection Aktive Serververbindung
+     * @param username Benutzername des eingeloggten Clients
+     */
     public void init(ClientConnection connection, String username) {
         this.connection = connection;
         this.username = username;
@@ -46,7 +53,8 @@ public class ChatController {
         // Listener auf Nachrichten wartet (blockierendes Lesen).
         new Thread(listener).start();
 
-        /**
+
+        /*
          * Aussehen der ListView wird definiert (CellFactory).
          * ListView erhält Anweisung, wie sie Daten malen soll (Farben, Ausrichtung).
          * Der ListView wird kein fester Inhalt übergeben, sondern eine Art Bauplan, Factory.
@@ -62,8 +70,8 @@ public class ChatController {
              */
             @Override
             protected void updateItem(String item, boolean empty) {
-                // Aufruf der Basis-Implementierung.
-                // Dies ist zwingend erforderlich, um die korrekte interne Zustandsverwaltung durch das FW sicherzustellen.
+                /* Aufruf der Basis-Implementierung.
+                Dies ist zwingend erforderlich, um die korrekte interne Zustandsverwaltung durch das FW sicherzustellen. */
                 super.updateItem(item, empty); // --> Standard-Verhalten beibehalten.
 
                 // Wenn Zeile Leer ist (keine Nachricht), nichts anzeigen.
@@ -75,8 +83,8 @@ public class ChatController {
                 // Text setzen.
                 setText(item);
 
-                // CSS-Styling je nach Art der Nachricht.
-                // Eigene Nachrichten: Rechtsbündig, blau
+                /* CSS-Styling je nach Art der Nachricht.
+                Eigene Nachrichten: Rechtsbündig, blau */
                 if (item.startsWith(username + ": ")) {
                     setStyle("-fx-alignment: CENTER-RIGHT; -fx-background-color: #D0E8FF; -fx-padding: 5px;");
                 }
@@ -151,7 +159,8 @@ public class ChatController {
     }
 
     /**
-     * Verarbeitet das Senden einer Nachricht.
+     * Sendet die aktuell eingegebene Nachricht an den Server
+     * und zeigt sie sofort lokal im Chat an.
      */
     private void sendMessage() {
         // Eingabe wird validiert. Text aus dem Eingabefeld (TextField) wird geholt.
@@ -257,6 +266,7 @@ public class ChatController {
     private void updateUserList(String payload) {
         // Validierung.
         if (payload == null) return;
+
         // Payload-Parsing & Deserialisierung. Zerlegung des Strings anhand des
         // Protokoll-Trenners ||.
         // Index 0: Liste aller registrierten Nutzer.

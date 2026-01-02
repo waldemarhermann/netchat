@@ -11,9 +11,13 @@ import javafx.stage.Stage;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-// Aufgaben: 1. Nimmt Benutzerdaten entgegen. 2. Baut Verbindung zum Server auf (Handshake).
-// 3. Sendet Login-Anfrage und wartet sofort auf die Antwort (synchron).
-// 4. Bei Erfolg: Die Verbindung im ClientManager speichern und zum Chat wechseln.
+ /**
+  * Aufgaben:
+  * 1. Nimmt Benutzerdaten entgegen.
+  * 2. Baut Verbindung zum Server auf (Handshake).
+  * 3. Sendet Login-Anfrage und wartet sofort auf die Antwort (synchron).
+  * 4. Bei Erfolg: Die Verbindung im ClientManager speichern und zum Chat wechseln.
+   */
 public class LoginController {
 
     @FXML
@@ -43,13 +47,13 @@ public class LoginController {
         }
 
         try {
-            // Verbindung herstellen: Hier wird ClientConnection erstellt. ABER: Noch nicht die
-            // dauerhafte Verbindung, falls Login fehlschlägt.
+            /* Verbindung herstellen: Hier wird ClientConnection erstellt. ABER: Noch nicht die
+            dauerhafte Verbindung, falls Login fehlschlägt. */
             ClientConnection connection = new ClientConnection("localhost", 9999);
             connection.connect(); // Baut den Socket auf (TCP Handshake)
 
-            // Login-Nachricht wird vorbereitet
-            // Typ "login" sagt dem Server, dass er diese Daten prüfen soll.
+            /* Login-Nachricht wird vorbereitet
+            Typ "login" sagt dem Server, dass er diese Daten prüfen soll. */
             Message loginMsg = new Message(
                     "login",
                     username,
@@ -60,10 +64,10 @@ public class LoginController {
             // Absenden.
             connection.send(loginMsg);
 
-            // Auf Antwort warten (Synchron)
-            // BufferedReader wird gebaut, um Antwort des Servers entgegen zu nehmen.
-            // Wichtig: Hier wird kein Listener-Thread genutzt, weil erst weitergemacht wird, wenn
-            // Server grünes Licht gibt.
+            /* Auf Antwort warten (Synchron)
+            BufferedReader wird gebaut, um Antwort des Servers entgegen zu nehmen.
+            Wichtig: Hier wird kein Listener-Thread genutzt, weil erst weitergemacht wird, wenn
+            Server grünes Licht gibt. */
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(connection.getSocket().getInputStream())
             );
@@ -79,8 +83,8 @@ public class LoginController {
                 return;
             }
 
-            // Erfolg: Offene, funktionierende Verbindung wird im CLientManager (Singleton) gespeichert.
-            // Damit kann diese im nächsten Fenster (ChatController) wieder verwendet werden.
+            /* Erfolg: Offene, funktionierende Verbindung wird im CLientManager (Singleton) gespeichert.
+            Damit kann diese im nächsten Fenster (ChatController) wieder verwendet werden. */
             ClientManager.getInstance().setUsername(username);
             ClientManager.getInstance().setConnection(connection);
 
@@ -104,9 +108,9 @@ public class LoginController {
             // Grafische Struktur wird fertig geladen.
             Scene chatScene = new Scene(loader.load());
 
-            // ChatController holen & Daten übergeben
-            // ChatController wird hier geholt, den der loader erstellt hat.
-            // Mit init() werden die Daten (Verbindung, Username) von hier zum Chat übergeben.
+            /* ChatController holen & Daten übergeben
+            ChatController wird hier geholt, den der loader erstellt hat.
+            Mit init() werden die Daten (Verbindung, Username) von hier zum Chat übergeben. */
             ChatController controller = loader.getController();
             controller.init(connection, username);
 

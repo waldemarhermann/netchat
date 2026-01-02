@@ -8,10 +8,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-// Controller für die Registrierungsmaske. Klasse erfasst Benutzerdaten (Name, E-Mail, Password)
-// und sendet an den Server. Server verarbeitet dann den Befehl, schreibt in die DB.
-// Wichtig: Aufgebaute Verbindung nur temporär, da ClientConnection connect nirgendwo gespeichert wird.
-// --> Server verarbeitet den Befehl, schreibt in die DB und wenn Verbindung abreißt, dann stirbt der Server-Thread.
+
+/**
+ * Controller für die Registrierungsmaske. Klasse erfasst Benutzerdaten (Name, E-Mail, Password)
+ * und sendet an den Server. Server verarbeitet dann den Befehl, schreibt in die DB.
+ * Wichtig: Aufgebaute Verbindung nur temporär, da ClientConnection connect nirgendwo gespeichert wird.
+ * --> Server verarbeitet den Befehl, schreibt in die DB und wenn Verbindung abreißt, dann stirbt der Server-Thread.
+  */
 public class RegisterController {
 
     // FXML Bindings: Diese Variablen werden mit Textfeldern aus der register_view.fxml verknüpft.
