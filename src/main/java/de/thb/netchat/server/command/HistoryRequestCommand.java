@@ -34,7 +34,7 @@ public class HistoryRequestCommand implements Command {
         List<String> msgs = service.getConversation(userA, userB);
 
         // 2. Daten-Aggregation
-        // Das Message-Objekt erlaub im "text"-Feld nur einen einzelnen String.
+        // Das Message-Objekt erlaubt im "text"-Feld nur einen einzelnen String.
         // Um eine Liste von Nachrichten zu übertragen, werden diese konkateniert.
         // Das Trennzeichen "||" dient als Delimiter, damit der Client den String wieder in Einzelnachrichten zerlegen kann.
         String aggregatedHistory = String.join("||", msgs);
