@@ -5,7 +5,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.control.ListCell;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ public class ChatController {
     private String username;
     private String selectedReceiver = null;
 
-
     public void init(ClientConnection connection, String username) {
         this.connection = connection;
         this.username = username;
@@ -36,39 +34,94 @@ public class ChatController {
             chatTitle.setText("NetChat – Chat");
         }
 
-        // 1) Listener starten (empfängt Nachrichten im Hintergrund)
+        // 1) Listener starten
         ClientListener listener = new ClientListener(connection.getSocket(), this::onMessageReceived);
         Thread t = new Thread(listener, "ChatListener");
         t.setDaemon(true);
         t.start();
 
-        // bubble chat
+        // Messages: Bubble-Styling
         messagesList.setCellFactory(list -> new ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
-                // alte Styles entfernen
-                getStyleClass().removeAll("message-self", "message-other", "message-system");
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                    return;
+                }
+
+                setText(item);
+                setWrapText(true);
+
+                // Baseline: keine Standard-Selection-Paintings
+                setStyle("-fx-background-color: transparent;");
+
+                String u = (username == null) ? "" : username;
+
+                // System-Meldungen
+                if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
+                    setStyle(
+                            "-fx-background-color: transparent;" +
+                                    "-fx-text-fill: #777;" +
+                                    "-fx-font-style: italic;" +
+                                    "-fx-padding: 6 10 6 10;" +
+                                    "-fx-alignment: CENTER;"
+                    );
+                }
+                // eigene Nachricht
+                else if (item.startsWith(u + ":") || item.startsWith("Du:")) {
+                    setStyle(
+                            "-fx-background-color: #d8efe2;" +
+                                    "-fx-background-radius: 12;" +
+                                    "-fx-padding: 10 12 10 12;" +
+                                    "-fx-alignment: CENTER-LEFT;" +
+                                    "-fx-text-fill: #2e2e2e;"
+                    );
+                }
+                // fremde Nachricht
+                else {
+                    setStyle(
+                            "-fx-background-color: #e8f1ff;" +
+                                    "-fx-background-radius: 12;" +
+                                    "-fx-padding: 10 12 10 12;" +
+                                    "-fx-alignment: CENTER-LEFT;" +
+                                    "-fx-text-fill: #2e2e2e;"
+                    );
+                }
+            }
+        });
+
+        //  Userliste
+        userList.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
                 if (empty || item == null) {
                     setText(null);
+                    setStyle("");
                     return;
                 }
 
                 setText(item);
 
-                // System-Meldungen
-                if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
-                    getStyleClass().add("message-system");
-                }
-                // eigene Nachricht
-                else if (item.startsWith(username + ":") || item.startsWith("Du:")) {
-                    getStyleClass().add("message-self");
-                }
-                // fremde Nachricht
-                else {
-                    getStyleClass().add("message-other");
+                // leichte Hervorhebung bei Auswahl
+                if (isSelected()) {
+                    setStyle(
+                            "-fx-background-color: #f0f4ff;" +
+                                    "-fx-background-radius: 8;" +
+                                    "-fx-padding: 6 8 6 8;" +
+                                    "-fx-text-fill: #2e2e2e;"
+                    );
+                } else {
+                    setStyle(
+                            "-fx-background-color: transparent;" +
+                                    "-fx-padding: 6 8 6 8;" +
+                                    "-fx-text-fill: #2e2e2e;"
+                    );
                 }
             }
         });
@@ -83,7 +136,7 @@ public class ChatController {
             }
         });
 
-        //Doppelklick auf Userliste = Empfänger wählen + History laden
+        // Doppelklick auf Userliste = Empfänger wählen + History laden
         userList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 String rawUser = userList.getSelectionModel().getSelectedItem();
@@ -132,14 +185,12 @@ public class ChatController {
         messageField.clear();
     }
 
-
     private void onMessageReceived(Message msg) {
         if (msg == null) return;
 
         Platform.runLater(() -> {
             switch (msg.getType()) {
                 case "message":
-
                     if (selectedReceiver != null && msg.getFrom().equals(selectedReceiver)) {
                         messagesList.getItems().add(msg.getFrom() + ": " + msg.getText());
                         messagesList.scrollTo(messagesList.getItems().size() - 1);
@@ -207,3 +258,4 @@ public class ChatController {
         }
     }
 }
+
