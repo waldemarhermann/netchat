@@ -1,24 +1,51 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="de.thb.netchat.client.RegisterController"
-      alignment="CENTER"
-      spacing="12">
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="de.thb.netchat.client.RegisterController"
+           prefWidth="520" prefHeight="360">
 
-    <padding><Insets top="40"/></padding>
+    <children>
+        <VBox spacing="14" maxWidth="360" StackPane.alignment="CENTER">
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
 
-    <Label text="NetChat – Registrierung" style="-fx-font-size: 22px;"/>
+            <Label text="NetChat Registrierung">
+                <font>
+                    <Font name="Segoe UI Bold" size="22"/>
+                </font>
+            </Label>
 
-    <TextField fx:id="tfUsername" promptText="Benutzername"/>
-    <TextField fx:id="tfEmail" promptText="E-Mail"/>
-    <PasswordField fx:id="tfPassword" promptText="Passwort"/>
+            <Label text="Account anlegen und loschatten"
+                   style="-fx-text-fill: #666; -fx-font-size: 12px;"/>
 
-    <Button text="Registrieren"
-            style="-fx-padding: 8px 20px;"
-            onAction="#register"/>
-</VBox>
+            <TextField fx:id="tfUsername" promptText="Benutzername" maxWidth="Infinity"/>
+            <TextField fx:id="tfEmail" promptText="E-Mail" maxWidth="Infinity"/>
+            <PasswordField fx:id="tfPassword" promptText="Passwort" maxWidth="Infinity"/>
+
+            <Button text="Registrieren"
+                    maxWidth="Infinity"
+                    onAction="#register"/>
+
+            <Label fx:id="errorLabel"
+                   visible="false"
+                   style="-fx-text-fill: #c62828; -fx-font-size: 12px;"/>
+
+            <Label text="© NetChat – THB"
+                   style="-fx-text-fill: #888; -fx-font-size: 11px;">
+                <VBox.margin>
+                    <Insets top="12" right="0" bottom="0" left="0"/>
+                </VBox.margin>
+            </Label>
+
+        </VBox>
+    </children>
+</StackPane>
+
+
