@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<StackPane xmlns="http://javafx.com/javafx/21"
+<StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="de.thb.netchat.client.RegisterController"
            prefWidth="520" prefHeight="360">
