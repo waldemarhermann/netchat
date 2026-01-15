@@ -30,7 +30,7 @@
 
                 <Button fx:id="btnLogin"
                         text="Einloggen"
-                        onAction="#onLoginClick"
+                        onAction="#login"
                         maxWidth="Infinity"/>
 
 
