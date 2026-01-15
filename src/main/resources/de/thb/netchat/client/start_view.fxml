@@ -3,25 +3,39 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20"
-      xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="de.thb.netchat.client.StartController"
-      style="-fx-padding: 30;">
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.thb.netchat.client.StartController"
+            prefWidth="420" prefHeight="320"
+            styleClass="start-root">
 
-    <Label text="NetChat"
-           style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+    <center>
+        <VBox alignment="CENTER" spacing="14" styleClass="card">
+            <padding>
+                <Insets top="28" right="28" bottom="28" left="28"/>
+            </padding>
 
-    <Button text="Login"
-            fx:id="loginButton"
-            style="-fx-font-size: 16px; -fx-padding: 10 20;"
-            onAction="#openLogin"/>
+            <Label text="NetChat" styleClass="app-title"/>
+            <Label text="Chatten. Einfach. Schnell." styleClass="app-subtitle"/>
 
-    <Button text="Registrieren"
-            fx:id="registerButton"
-            style="-fx-font-size: 16px; -fx-padding: 10 20;"
-            onAction="#openRegister"/>
+            <VBox spacing="10" fillWidth="true" style="-fx-padding: 8 0 0 0;">
+                <Button fx:id="loginButton"
+                        text="Login"
+                        maxWidth="Infinity"
+                        styleClass="primary-button"
+                        onAction="#openLogin"/>
 
-</VBox>
+                <Button fx:id="registerButton"
+                        text="Registrieren"
+                        maxWidth="Infinity"
+                        styleClass="secondary-button"
+                        onAction="#openRegister"/>
+            </VBox>
+
+            <Label text="© NetChat – THB" styleClass="footer-hint"/>
+        </VBox>
+    </center>
+</BorderPane>

@@ -1,27 +1,45 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="de.thb.netchat.client.LoginController"
-      alignment="CENTER"
-      spacing="12">
+<AnchorPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.thb.netchat.client.LoginController"
+            prefHeight="260.0" prefWidth="420.0">
 
-    <padding>
-        <Insets top="40"/>
-    </padding>
+    <children>
+        <VBox spacing="12.0"
+              AnchorPane.leftAnchor="40.0"
+              AnchorPane.rightAnchor="40.0"
+              AnchorPane.topAnchor="30.0"
+              AnchorPane.bottomAnchor="30.0">
 
-    <Label text="NetChat – Login" style="-fx-font-size: 22px;"/>
+            <children>
+                <Label text="NetChat Login">
+                    <font>
+                        <Font name="Segoe UI Bold" size="20"/>
+                    </font>
+                </Label>
 
-    <TextField fx:id="tfUsername" promptText="Benutzername"/>
-    <PasswordField fx:id="tfPassword" promptText="Passwort"/>
+                <TextField fx:id="tfUsername" promptText="Benutzername"/>
 
-    <Button fx:id="btnLogin"
-            text="Einloggen"
-            style="-fx-padding: 8px 20px;"
-            onAction="#login"/>
+                <PasswordField fx:id="tfPassword" promptText="Passwort"/>
 
-</VBox>
+                <Button fx:id="btnLogin"
+                        text="Einloggen"
+                        onAction="#onLoginClick"
+                        maxWidth="Infinity"/>
+
+
+                <Label fx:id="errorLabel" textFill="red" visible="false"/>
+            </children>
+
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+        </VBox>
+    </children>
+</AnchorPane>
