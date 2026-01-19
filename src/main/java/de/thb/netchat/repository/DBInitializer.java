@@ -6,9 +6,21 @@ import java.sql.Statement;
 
 /* Quelle: https://github.com/xerial/sqlite-jdbc */
 
+/**
+ * Klasse zur Initialisierung des Datenbankschemas.
+ * Diese Klasse stellt sicher, dass beim Start der Anwendung alle notwendigen
+ * Tabellen in der SQLite-Datenbank existieren.
+ */
 public class DBInitializer {
 
+    /**
+     * Erstellt die Tabellen "users" und "messages", falls diese noch nicht existieren.
+     * Wird typischerweise beim Server-Start aufgerufen.
+     */
     public static void initialize() {
+        // SQL-Statement für die Benutzer-Tabelle.
+        // Wir nutzen Java "Text Blocks" ("""), um den SQL-Code lesbar zu formatieren.
+        // "text unique" sorgt dafür, dass Namen und E-Mails nicht doppelt vorkommen dürfen.
         String createUsers = """
                 create table if not exists users (
                     id integer primary key autoincrement,
@@ -19,6 +31,7 @@ public class DBInitializer {
                 );
         """;
 
+        // SQL-Statement für die Nachrichten-Verlauf-Tabelle.
         String createMessages = """
                 create table if not exists messages (
                     id integer primary key autoincrement,
@@ -29,6 +42,9 @@ public class DBInitializer {
                 );
                 """;
 
+        // "try-with-resources" Block:
+        // Stellt sicher, dass Connection und Statement automatisch geschlossen werden,
+        // sobald der Block verlassen wird (auch bei Fehlern). Verhindert Speicherlecks.
         try (Connection connection = DBConnection.getConnection();
              Statement statement = connection.createStatement()) {
 
@@ -41,6 +57,11 @@ public class DBInitializer {
         }
     }
 
+    /**
+     * Löscht alle Tabellen aus der Datenbank.
+     * Nützlich für Unit-Tests oder um den Server komplett zurückzusetzen.
+     * ACHTUNG: Führt zu unwiderruflichem Datenverlust!
+     */
     public static void resetDB() {
         try (Connection connection = DBConnection.getConnection();
              Statement statement = connection.createStatement()) {
@@ -55,5 +76,4 @@ public class DBInitializer {
             e.printStackTrace();
         }
     }
-
 }
