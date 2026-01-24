@@ -8,7 +8,8 @@
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="de.thb.netchat.client.RegisterController"
-           prefWidth="520" prefHeight="360">
+           stylesheets="@app.css" prefWidth="520" prefHeight="360"
+           styleClass="start-root">
 
     <children>
         <VBox spacing="14" maxWidth="360" StackPane.alignment="CENTER">
@@ -31,6 +32,7 @@
 
             <Button text="Registrieren"
                     maxWidth="Infinity"
+                    styleClass="primary-button"
                     onAction="#register"/>
 
             <Label fx:id="errorLabel"

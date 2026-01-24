@@ -8,6 +8,7 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="de.thb.netchat.client.LoginController"
+            stylesheets="@app.css"
             prefHeight="260.0" prefWidth="420.0">
 
     <children>
@@ -30,6 +31,7 @@
 
                 <Button fx:id="btnLogin"
                         text="Einloggen"
+                        styleClass="primary-button"
                         onAction="#login"
                         maxWidth="Infinity"/>
 

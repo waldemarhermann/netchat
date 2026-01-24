@@ -25,13 +25,12 @@ public class ChatController {
     @FXML private Button sendButton;
     @FXML private ListView<String> userList;
     @FXML private Label chatTitle;
+    @FXML private Label statusLabel;
 
     // Verbindung zum Server.
     private ClientConnection connection;
-
     // Benutzername
     private String username;
-
     // Chatpartner, wird gesetzt sobald man den User aus der Userliste clickt.
     private String selectedReceiver = null;
 
@@ -44,6 +43,14 @@ public class ChatController {
     public void init(ClientConnection connection, String username) {
         this.connection = connection;
         this.username = username;
+
+        // Status setzen
+        if (statusLabel != null) {
+            statusLabel.setText("(verbunden)");
+        }
+        if (chatTitle != null) {
+            chatTitle.setText("NetChat – Chat");
+        }
 
         // Listener starten. Es wird das Socket und this::onMessageReceived übergeben. Das ist der Callback (Consumer).
         // Wenn der Listener Daten hat, führt diese Methode aus.
@@ -77,28 +84,44 @@ public class ChatController {
                 // Wenn Zeile Leer ist (keine Nachricht), nichts anzeigen.
                 if (empty || item == null) {
                     setText(null);
+                    setGraphic(null);
                     setStyle("");
                     return;
                 }
-                // Text setzen.
+                // Text setzen, Umbruch aktivieren.
+                setText(item);
+                setWrapText(true);
+                setStyle("-fx-background-color: transparent");
+
+                // Styling-Logik (Info, Eigene, Fremde)
+                if (item.startsWith("[INFO") || item.startsWith("[ERROR]")) {
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: #777; -fx-font-style: italic; -fx-padding: 6 10 6 10; -fx-alignment: CENTER;");
+                }
+                else if (item.startsWith(username + ":")) {
+                    setStyle("-fx-background-color: #d8efe2; -fx-background-radius: 12; -fx-padding: 10 12 10 12; -fx-alignment: CENTER-LEFT; -fx-text-fill: #2e2e2e;");
+                }
+                else {
+                    setStyle("-fx-background-color: #e8f1ff; -fx-background-radius: 12; -fx-padding: 10 12 10 12; -fx-alignment: CENTER-LEFT; -fx-text-fill: #2e2e2e;");
+                }
+            }
+        });
+
+        userList.setCellFactory(list -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                    return;
+                }
                 setText(item);
 
-                /* CSS-Styling je nach Art der Nachricht.
-                Eigene Nachrichten: Rechtsbündig, blau */
-                if (item.startsWith(username + ": ")) {
-                    setStyle("-fx-alignment: CENTER-RIGHT; -fx-background-color: #D0E8FF; -fx-padding: 5px;");
-                }
-                // Info / Error: Mittig, Grau, kursiv
-                else if (item.startsWith("[INFO]") || item.startsWith("[ERROR]")) {
-                    setStyle("-fx-alignment: CENTER; -fx-text-fill: #555; -fx-font-style: italic;");
-                }
-                // Nachricht von anderen: Linksbündig, hellgrau
-                else if (item.contains(": ")) {
-                    setStyle("-fx-alignment: CENTER-LEFT; -fx-background-color: #EFEFEF; -fx-padding: 5px;");
-                }
-                // Fallback (Normal)
-                else {
-                    setStyle("");
+                // Leichte Hervorhebung bei Auswahl
+                if (isSelected()) {
+                    setStyle("-fx-background-color: #f0f4ff; -fx-background-radius: 8; -fx-padding: 6 8 6 8; -fx-text-fill: #2e2e2e;");
+                } else {
+                    setStyle("-fx-background-color: transparent; -fx-padding: 6 8 6 8; -fx-text-fill: #2e2e2e;");
                 }
             }
         });
