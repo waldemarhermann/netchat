@@ -9,7 +9,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="de.thb.netchat.client.StartController"
-            prefWidth="420" prefHeight="320"
+            stylesheets="@app.css" prefWidth="420" prefHeight="320"
             styleClass="start-root">
 
     <center>
